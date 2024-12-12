@@ -1,4 +1,6 @@
-# Comment faire
+# Comment faire en tant qu'étudiant sans argent ?
+
+On va utiliser Kubernetes en local, pour cela on va devoir faire plusieurs choses.
 
 - Sur une VM, installer docker, docker compose, minikube, kubectl:
 
@@ -22,9 +24,21 @@ minikube start -n 2
 minikube start --cpus 4 --memory 4064
 ```
 
+Un cluster est un réseau de machines qui vont être utilisés pour servir un client.
+Un noeud est une machine.
+
+Quand on fait un cluster de plusieurs noeuds, le premier va être l'orchestrateur et les autres des workers (des travailleurs). L'orchestrateur va répartir la charge des requêtes sur les workers. Cette machine fonctionne aussi comme un worker mais juste avec des fonctions en plus.
+
+```sh
+# Récupérer les informations de notre cluster
+minikube status
+```
+
 ---
 
 - On va ensuite créer les pods, deployments et services.
+
+Les pods sont des conteneurs pour nos images dockers. Les deployments s'assurent que les pods fonctionnent, et automatisent le remplacement des pods en cas de malfonctions. Les services eux fournissent un point d'entrée vers les pods.
 
 ```yaml
 apiVersion: apps/v1
@@ -57,7 +71,7 @@ spec:
     - port: 8080
 ```
 
-Dans ce fichier, on peut choisir l'image docker qu'on veut utiliser, son port et plein d'autres choses.
+Dans ce fichier, on peut choisir l'image docker qu'on veut utiliser, son port et plein d'autres choses. Ici on utilise echo-server une image qui permet de récupérer les informations du serveur(le pod)
 
 ---
 

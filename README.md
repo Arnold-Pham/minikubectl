@@ -1,48 +1,54 @@
-# Comment faire en tant qu'étudiant fauché ?
+# Comment utiliser Kubernetes en local en tant qu'étudiant fauché
 
-On va utiliser Kubernetes en local, pour cela on va devoir faire plusieurs choses.
+## Préparation de l'environnement
 
-- Sur une VM, installer docker, docker compose, minikube, kubectl:
+Pour exécuter Kubernetes en local, voici les étapes à suivre :
 
-    - [Installer Docker](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-22-04)
-    - [Installer Docker Compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-22-04)
-    - [Installer Minikube](https://minikube.sigs.k8s.io/docs/start)
-    - [Installer Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+### Installer les outils nécessaires sur une VM
 
----
+  1. **Docker** - [Guide d'installation](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-22-04)
 
-- Démarrer un cluster:
+  2. **Docker Compose** - [Guide d'installation](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-22-04)
+
+  3. **Minikube** - [Guide d'installation](https://minikube.sigs.k8s.io/docs/start)
+
+  4. **Kubectl** - [Guide d'installation](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+
+### Démarrer un cluster Kubernetes
 
 ```sh
-# Démarre un cluster avec un seul noeud
+# Démarrer un cluster avec un seul noeud
 minikube start
 
-# On peut aussi créer un cluster avec plusieurs noeuds
+# Créer un cluster avec plusieurs noeuds
 minikube start -n 2
 
-# Encore plus loin, on peut créer un cluster de plusieurs noeuds avec des ressources cpu et ram définis
-minikube start --cpus 4 --memory 4064
+# Créer un cluster multi-noeuds avec des ressources CPU et RAM définies
+minikube start --cpus 4 --memory 4092
 ```
 
-Un cluster est un réseau de machines qui vont être utilisés pour servir un client.
-Un noeud est une machine.
+**Concepts clés** :
+- Un **cluster** est un réseau de machines travaillant ensemble pour répondre aux requêtes clients
+- Un **noeud** est une machine dans ce réseau
+  - Le premier noeud agit comme orchestrateur, distribuant les charges de travail sur les autres noeuds (appelés "workers")
 
-Quand on fait un cluster de plusieurs noeuds, le premier va être l'orchestrateur et les autres des workers (des travailleurs). L'orchestrateur va répartir la charge des requêtes sur les workers. Cette machine fonctionne aussi comme un worker mais juste avec des fonctions en plus.
+### Vérifications de base
 
 ```sh
-# Récupérer les informations de notre cluster
+# Vérifier l'état du cluster
 minikube status
-# Récupérer les nodes
+
+# Lister les noeuds du cluster
 kubectl get nodes
 ```
 
 ---
 
-## On va créer les pods, deployments et services.
+## Création des Pods, Deployments et Services
 
-### La méthode facile
+### Méthode 1 : Utiliser un fichier de configuration YAML
 
-Les pods sont des conteneurs pour nos images dockers. Les deployments s'assurent que les pods fonctionnent, et automatisent le remplacement des pods en cas de malfonctions. Les services eux fournissent un point d'entrée vers les pods.
+Créez un fichier `myserver.yaml` avec le contenu suivant :
 
 ```yaml
 apiVersion: apps/v1
@@ -63,8 +69,8 @@ spec:
       - name: myserver
         image: kicbase/echo-server:1.0
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: myserver-service
 spec:
@@ -75,63 +81,87 @@ spec:
     - port: 8080
 ```
 
-Dans ce fichier, on peut choisir l'image docker qu'on veut utiliser, son port et plein d'autres choses. Ici on utilise echo-server une image qui permet de récupérer les informations du serveur(le pod)
+- **Explications** :
+  - **Deployment** : Définit deux réplicas (instances) de l'image `kicbase/echo-server:1.0`
+  - **Service** : Expose les Pods via le port (8080)
 
----
-
-- Avec cet exemple qu'on va appeler `myserver.yaml` on va utiliser les commandes suivantes
+- Pour appliquer ce fichier :
 
 ```sh
-# On va prendre le fichier de configuration précédent pour le déployer
 kubectl apply -f myserver.yaml
 ```
 
----
+### Méthode 2 : Utiliser des commandes Kubectl
 
-### La seconde méthode
+- Créer un Deployment directement depuis la ligne de commande :
 
 ```sh
-# Créer un déploiment
-kubectl create deployment myserver --replicas 2 --image=kicbase/echo-server:1.0
+kubectl create deployment myserver --replicas=2 --image=kicbase/echo-server:1.0
+```
 
-# Exposer le pod
-kubectl expose deployment hello-minikube --type=NodePort --port=8080
+- Exposer ce Deployment en tant que Service :
+
+```sh
+kubectl expose deployment myserver --type=NodePort --port=8080
 ```
 
 ---
 
-### La suite commune
-- Vérifications:
+## Vérifications et gestion
+
+### État des ressources
+
+- Vérifier l'état des Pods, Deployments et Services :
 
 ```sh
-# On va vérifier l'état des pods, des déployments et des services pour voir si ils démarrent bien
 kubectl get pods
-kubectl get deployements
+kubectl get deployments
 kubectl get services
+```
 
-# Pour aller plus loin, on peut récupérer plus d'informations des pods avec
+- Pour plus de détails sur les Pods :
+
+```sh
 kubectl get pods -o wide
 ```
 
----
+### Accéder au Service
 
-- Quand le service a bien démarré, on peut le lancer avec minikube, et ouvrir une porte sur le service
+Une fois le Service déployé, ouvrez-le avec Minikube :
 
 ```sh
 minikube service myserver-service
 ```
 
-Si tout se passe bien, on devrait avoir un navigateur qui s'ouvre avec l'image qu'on a choisi
+Cela devrait ouvrir un navigateur affichant les informations du serveur (provenant de l'image `echo-server`).
 
----
+### Debugging
 
-- Si on a un problème on peut toujours récupérer les logs de nos pods avec
+- Si des problèmes surviennent, consultez les logs des Pods :
 
 ```sh
 kubectl logs <nom-du-pod>
 
-# On peut aussi garder les logs ouverts avec l'option -f
+# Pour surveiller les logs en temps réel :
 kubectl logs -f <nom-du-pod>
 ```
 
-Garder les logs ouverts permet de pouvoir voir les logs en temps réél et pouvoir voir les erreurs pendant notre navigation.
+Surveiller les logs permet d’identifier rapidement les erreurs pendant l'exécution.
+
+---
+
+## Notes supplémentaires
+
+Supprimez les ressources pour libérer de l'espace :
+
+```sh
+# Dans le cas d'un fichier
+kubectl delete -f myserver.yaml
+
+# En général
+kubectl delete service <nom-du-service>
+kubectl delete deployment <nom-du-deployment>
+
+minikube stop
+minikube delete
+```

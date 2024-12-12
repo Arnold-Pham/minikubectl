@@ -1,4 +1,4 @@
-# Comment faire en tant qu'étudiant sans argent ?
+# Comment faire en tant qu'étudiant fauché ?
 
 On va utiliser Kubernetes en local, pour cela on va devoir faire plusieurs choses.
 
@@ -32,11 +32,15 @@ Quand on fait un cluster de plusieurs noeuds, le premier va être l'orchestrateu
 ```sh
 # Récupérer les informations de notre cluster
 minikube status
+# Récupérer les nodes
+kubectl get nodes
 ```
 
 ---
 
-- On va ensuite créer les pods, deployments et services.
+## On va créer les pods, deployments et services.
+
+### La méthode facile
 
 Les pods sont des conteneurs pour nos images dockers. Les deployments s'assurent que les pods fonctionnent, et automatisent le remplacement des pods en cas de malfonctions. Les services eux fournissent un point d'entrée vers les pods.
 
@@ -80,7 +84,26 @@ Dans ce fichier, on peut choisir l'image docker qu'on veut utiliser, son port et
 ```sh
 # On va prendre le fichier de configuration précédent pour le déployer
 kubectl apply -f myserver.yaml
+```
 
+---
+
+### La seconde méthode
+
+```sh
+# Créer un déploiment
+kubectl create deployment myserver --replicas 2 --image=kicbase/echo-server:1.0
+
+# Exposer le pod
+kubectl expose deployment hello-minikube --type=NodePort --port=8080
+```
+
+---
+
+### La suite commune
+- Vérifications:
+
+```sh
 # On va vérifier l'état des pods, des déployments et des services pour voir si ils démarrent bien
 kubectl get pods
 kubectl get deployements

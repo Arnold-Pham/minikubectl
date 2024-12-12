@@ -14,8 +14,10 @@
 ```sh
 # Démarre un cluster avec un seul noeud
 minikube start
+
 # On peut aussi créer un cluster avec plusieurs noeuds
 minikube start -n 2
+
 # Encore plus loin, on peut créer un cluster de plusieurs noeuds avec des ressources cpu et ram définis
 minikube start --cpus 4 --memory 4064
 ```
@@ -64,6 +66,7 @@ Dans ce fichier, on peut choisir l'image docker qu'on veut utiliser, son port et
 ```sh
 # On va prendre le fichier de configuration précédent pour le déployer
 kubectl apply -f myserver.yaml
+
 # On va vérifier l'état des pods, des déployments et des services pour voir si ils démarrent bien
 kubectl get pods
 kubectl get deployements
@@ -89,6 +92,7 @@ Si tout se passe bien, on devrait avoir un navigateur qui s'ouvre avec l'image q
 
 ```sh
 kubectl logs <nom-du-pod>
+
 # On peut aussi garder les logs ouverts avec l'option -f
 kubectl logs -f <nom-du-pod>
 ```

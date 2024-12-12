@@ -1,10 +1,13 @@
 # Comment faire
+
 - Sur une VM, installer docker, docker compose, minikube, kubectl:
 
     - [Installer Docker](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-22-04)
     - [Installer Docker Compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-22-04)
     - [Installer Minikube](https://minikube.sigs.k8s.io/docs/start)
     - [Installer Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+
+---
 
 - Démarrer un cluster:
 
@@ -16,6 +19,8 @@ minikube start -n 2
 # Encore plus loin, on peut créer un cluster de plusieurs noeuds avec des ressources cpu et ram définis
 minikube start --cpus 4 --memory 4064
 ```
+
+---
 
 - On va ensuite créer les pods, deployments et services.
 
@@ -52,6 +57,8 @@ spec:
 
 Dans ce fichier, on peut choisir l'image docker qu'on veut utiliser, son port et plein d'autres choses.
 
+---
+
 - Avec cet exemple qu'on va appeler `myserver.yaml` on va utiliser les commandes suivantes
 
 ```sh
@@ -66,8 +73,24 @@ kubectl get services
 kubectl get pods -o wide
 ```
 
+---
+
 - Quand le service a bien démarré, on peut le lancer avec minikube, et ouvrir une porte sur le service
 
 ```sh
 minikube service myserver-service
 ```
+
+Si tout se passe bien, on devrait avoir un navigateur qui s'ouvre avec l'image qu'on a choisi
+
+---
+
+- Si on a un problème on peut toujours récupérer les logs de nos pods avec
+
+```sh
+kubectl logs <nom-du-pod>
+# On peut aussi garder les logs ouverts avec l'option -f
+kubectl logs -f <nom-du-pod>
+```
+
+Garder les logs ouverts permet de pouvoir voir les logs en temps réél et pouvoir voir les erreurs pendant notre navigation.
